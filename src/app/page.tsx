@@ -12,10 +12,10 @@ import React, {
 import { format, parseISO, addDays, differenceInDays } from "date-fns";
 import { debounce, throttle, uniq, groupBy } from "lodash";
 import clsx from "clsx";
+import { FiRotateCcw, FiDownload } from "react-icons/fi";
 
 import ImageTextInput from "../components/ImageTextInput";
 import { LiveProvider, LiveError, LivePreview } from "react-live";
-import { FiRotateCcw } from "react-icons/fi";
 import SnakeLoading from "../components/SnakeLoading";
 
 interface Message {
@@ -31,6 +31,7 @@ export default function Home() {
   const [hasStarted, setHasStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [previousCode, setPreviousCode] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const handleAnalysisComplete = (result: string) => {
     const wrappedCode = result.includes("render(")
@@ -74,8 +75,20 @@ export default function Home() {
   };
 
   const handleRestoreState = (code: string) => {
-    setCurrentPreview(code);
     setPreviousCode(code);
+    setCurrentPreview(code);
+  };
+
+  const handleCopyCode = async () => {
+    if (!currentPreview) return;
+
+    try {
+      await navigator.clipboard.writeText(currentPreview);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy code:", err);
+    }
   };
 
   if (!hasStarted) {
@@ -93,9 +106,21 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen">
-      <div className="w-80 border-r border-gray-200 p-4 flex flex-col">
-        <h1 className="text-2xl font-bold mb-4">not v0</h1>
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <div className="w-80 border-r border-gray-200 p-4 flex flex-col fixed left-0 top-0 bottom-0 bg-white">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">not v0</h1>
+          {currentPreview && (
+            <button
+              onClick={handleCopyCode}
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-100"
+              title="Copy code to clipboard"
+            >
+              <FiDownload className="w-5 h-5" />
+            </button>
+          )}
+        </div>
         <div className="flex-1 overflow-y-auto">
           {messages.map((message, index) => (
             <div
@@ -157,10 +182,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex-1 bg-gray-50 relative">
-        <div className="absolute top-4 left-4 z-10">
-          {/* <h2 className="text-xl font-semibold text-gray-400">Preview</h2> */}
-        </div>
+      {/* Preview Section */}
+      <div className="flex-1 bg-gray-50 relative min-h-screen ml-80">
         <div className="h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
           <div className="h-full w-full flex items-center justify-center">
             {isLoading ? (
@@ -205,7 +228,7 @@ export default function Home() {
                   }}
                 >
                   <LiveError className="text-red-500 p-4" />
-                  <LivePreview className="" />
+                  <LivePreview className="p-[60px]" />
                 </LiveProvider>
               </div>
             ) : (
