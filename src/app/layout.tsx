@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "not v0",
-  description: "generate react code from prompt or image",
+  title: "definitely not v0",
+  description: "Turn text or images into functional React components using AI",
 };
 
 export default function RootLayout({
