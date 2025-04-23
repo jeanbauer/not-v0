@@ -1,12 +1,21 @@
 import React, { useState, useRef } from "react";
 import { FiImage, FiX, FiSend } from "react-icons/fi";
 
+interface Message {
+  type: "text" | "image";
+  content: string;
+  result: string;
+  code?: string;
+}
+
 interface ImageTextInputProps {
   onSubmit?: (text: string) => void;
   onImageChange?: (file: File | null) => void;
   onAnalysisComplete?: (result: string) => void;
   placeholder?: string;
   className?: string;
+  messages?: Message[];
+  previousCode?: string | null;
 }
 
 const ImageTextInput: React.FC<ImageTextInputProps> = ({
@@ -15,6 +24,8 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
   onAnalysisComplete,
   placeholder = "Type something or upload an image...",
   className = "",
+  messages = [],
+  previousCode = null,
 }) => {
   const [text, setText] = useState("");
   const [, setSelectedImage] = useState<File | null>(null);
@@ -91,6 +102,7 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
         body: JSON.stringify({
           type: "text",
           content: text,
+          previousCode,
         }),
       });
 

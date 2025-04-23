@@ -16,18 +16,22 @@ const openai = new OpenAI({
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { type, content } = body;
+    const { type, content, previousCode } = body;
 
     let messages: OpenAI.Chat.ChatCompletionMessageParam[];
     if (type === "image") {
       messages = [
         {
           role: "system" as const,
-          content: `Based on the image uploaded, transform based on the following instructions: ${systemPrompt}`,
+          content: systemPrompt,
         },
         {
           role: "user" as const,
           content: [
+            {
+              type: "text",
+              text: "Analyze this UI layout and return ONLY a valid JSON object following the specified format. Do not include any additional text or formatting.",
+            },
             {
               type: "image_url",
               image_url: {
@@ -39,11 +43,20 @@ export async function POST(request: Request) {
         },
       ];
     } else {
+      // For text messages, include the previous code if it exists
+      const contextMessage = previousCode
+        ? {
+            role: "system" as const,
+            content: `Previous component code:\n${previousCode}\n\nUse this as reference for the next component. Only modify what user asks for.`,
+          }
+        : null;
+
       messages = [
         {
           role: "system" as const,
           content: systemPrompt,
         },
+        ...(contextMessage ? [contextMessage] : []),
         {
           role: "user" as const,
           content: content,

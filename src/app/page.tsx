@@ -16,7 +16,7 @@ import clsx from "clsx";
 import ImageTextInput from "../components/ImageTextInput";
 import { LiveProvider, LiveError, LivePreview } from "react-live";
 import { FiRotateCcw } from "react-icons/fi";
-import ReactIcons from "react-icons";
+import SnakeLoading from "../components/SnakeLoading";
 
 interface Message {
   type: "text" | "image";
@@ -29,6 +29,8 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentPreview, setCurrentPreview] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [previousCode, setPreviousCode] = useState<string | null>(null);
 
   const handleAnalysisComplete = (result: string) => {
     const wrappedCode = result.includes("render(")
@@ -45,6 +47,7 @@ export default function Home() {
       }
       return newMessages;
     });
+    setIsLoading(false);
   };
 
   const handleSubmit = (text: string) => {
@@ -52,6 +55,7 @@ export default function Home() {
       ...prev,
       { type: "text", content: text, result: "" },
     ]);
+    setIsLoading(true);
   };
 
   const handleImageChange = (file: File | null) => {
@@ -63,6 +67,7 @@ export default function Home() {
           ...prev,
           { type: "image", content: base64Image, result: "" },
         ]);
+        setIsLoading(true);
       };
       reader.readAsDataURL(file);
     }
@@ -70,6 +75,7 @@ export default function Home() {
 
   const handleRestoreState = (code: string) => {
     setCurrentPreview(code);
+    setPreviousCode(code);
   };
 
   if (!hasStarted) {
@@ -145,18 +151,24 @@ export default function Home() {
             onImageChange={handleImageChange}
             onAnalysisComplete={handleAnalysisComplete}
             placeholder="Reply..."
+            messages={messages}
+            previousCode={previousCode}
           />
         </div>
       </div>
 
       <div className="flex-1 bg-gray-50 relative">
         <div className="absolute top-4 left-4 z-10">
-          <h2 className="text-xl font-semibold text-gray-400">Preview</h2>
+          {/* <h2 className="text-xl font-semibold text-gray-400">Preview</h2> */}
         </div>
         <div className="h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
           <div className="h-full w-full flex items-center justify-center">
-            {currentPreview ? (
-              <div className="mt-[100px] h-full w-full ">
+            {isLoading ? (
+              <div className="w-1/3 h-1/3">
+                <SnakeLoading />
+              </div>
+            ) : currentPreview ? (
+              <div className="h-full w-full">
                 <div
                   dangerouslySetInnerHTML={{
                     __html:
@@ -190,11 +202,10 @@ export default function Home() {
 
                     // UI utilities
                     clsx,
-                    ReactIcons,
                   }}
                 >
                   <LiveError className="text-red-500 p-4" />
-                  <LivePreview className="w-full h-full" />
+                  <LivePreview className="" />
                 </LiveProvider>
               </div>
             ) : (
