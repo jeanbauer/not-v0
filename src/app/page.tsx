@@ -12,7 +12,7 @@ import React, {
 import { format, parseISO, addDays, differenceInDays } from "date-fns";
 import { debounce, throttle, uniq, groupBy } from "lodash";
 import clsx from "clsx";
-import { FiRotateCcw, FiDownload } from "react-icons/fi";
+import { FiRotateCcw, FiDownload, FiChevronUp } from "react-icons/fi";
 
 import ImageTextInput from "../components/ImageTextInput";
 import { LiveProvider, LiveError, LivePreview } from "react-live";
@@ -32,12 +32,14 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [previousCode, setPreviousCode] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleAnalysisComplete = (result: string) => {
     const wrappedCode = result.includes("render(")
       ? result
       : `const Component = ${result};\nrender(<Component />);`;
     setCurrentPreview(wrappedCode);
+    setPreviousCode(wrappedCode);
     if (!hasStarted) {
       setHasStarted(true);
     }
@@ -52,11 +54,18 @@ export default function Home() {
   };
 
   const handleSubmit = (text: string) => {
+    console.log("Current Preview:", currentPreview);
+    console.log("Previous Code before update:", previousCode);
+
     setMessages((prev) => [
       ...prev,
       { type: "text", content: text, result: "" },
     ]);
     setIsLoading(true);
+    if (currentPreview) {
+      console.log("Setting previousCode to:", currentPreview);
+      setPreviousCode(currentPreview);
+    }
   };
 
   const handleImageChange = (file: File | null) => {
@@ -107,8 +116,8 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <div className="w-80 border-r border-gray-200 p-4 flex flex-col fixed left-0 top-0 bottom-0 bg-white">
+      {/* Sidebar - Desktop */}
+      <div className="hidden md:flex w-80 border-r border-gray-200 p-4 flex-col fixed left-0 top-0 bottom-0 bg-white">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">not v0</h1>
           {currentPreview && (
@@ -182,8 +191,109 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Sidebar - Mobile */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 transition-transform duration-300 ease-in-out z-50"
+        style={{
+          transform: isSidebarOpen
+            ? "translateY(0)"
+            : "translateY(calc(100% - 48px))",
+        }}
+      >
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="w-full p-3 flex items-center justify-center text-gray-400 hover:text-gray-600 bg-white border-t border-gray-200"
+        >
+          {!isSidebarOpen ? (
+            <div className="w-12 h-1 bg-gray-300 rounded-full">
+              <div className="absolute -top-2 left-0 right-0 flex items-center justify-center">
+                <div className="bg-blue-500 text-white px-2 py-1 rounded-full">
+                  Prompt
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </button>
+        <div className="p-4 max-h-[80vh] overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold">not v0</h1>
+            {currentPreview && (
+              <button
+                onClick={handleCopyCode}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-100"
+                title="Copy code to clipboard"
+              >
+                <FiDownload className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+          <div className="space-y-2">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className="p-2 bg-gray-50 rounded-lg group relative cursor-pointer hover:bg-gray-100/50 transition-colors"
+                onClick={() => message.code && handleRestoreState(message.code)}
+              >
+                {message.type === "image" ? (
+                  <div className="relative">
+                    <img
+                      src={message.content}
+                      alt="Uploaded"
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
+                    {message.code && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRestoreState(message.code!);
+                        }}
+                        className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-100"
+                        title="Restore this state"
+                      >
+                        <FiRotateCcw className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-700 text-sm flex-1">
+                      {message.content}
+                    </p>
+                    {message.code && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRestoreState(message.code!);
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-100"
+                        title="Restore this state"
+                      >
+                        <FiRotateCcw className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4">
+            <ImageTextInput
+              onSubmit={handleSubmit}
+              onImageChange={handleImageChange}
+              onAnalysisComplete={handleAnalysisComplete}
+              placeholder={
+                isSidebarOpen ? "" : "Change the background color..."
+              }
+              messages={messages}
+              previousCode={previousCode}
+              autoFocus={isSidebarOpen}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Preview Section */}
-      <div className="flex-1 bg-gray-50 relative min-h-screen ml-80">
+      <div className="flex-1 bg-gray-50 relative min-h-screen md:ml-80">
         <div className="h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
           <div className="h-full w-full flex items-center justify-center">
             {isLoading ? (

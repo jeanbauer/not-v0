@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FiImage, FiX, FiSend } from "react-icons/fi";
 
 interface Message {
@@ -16,6 +16,7 @@ interface ImageTextInputProps {
   className?: string;
   messages?: Message[];
   previousCode?: string | null;
+  autoFocus?: boolean;
 }
 
 const ImageTextInput: React.FC<ImageTextInputProps> = ({
@@ -26,12 +27,20 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
   className = "",
   messages = [],
   previousCode = null,
+  autoFocus = false,
 }) => {
   const [text, setText] = useState("");
   const [, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
@@ -93,6 +102,7 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
 
     onSubmit?.(text);
     setIsLoading(true);
+
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -102,7 +112,7 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
         body: JSON.stringify({
           type: "text",
           content: text,
-          previousCode,
+          previousCode: previousCode || null,
         }),
       });
 
@@ -127,6 +137,7 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
       <div className={`relative flex items-center w-[300px] ${className}`}>
         <div className="relative flex-1">
           <input
+            ref={inputRef}
             type="text"
             value={text}
             onChange={handleTextChange}
