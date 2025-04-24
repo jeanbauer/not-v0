@@ -1,20 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiImage, FiX, FiSend } from "react-icons/fi";
 
-interface Message {
-  type: "text" | "image";
-  content: string;
-  result: string;
-  code?: string;
-}
-
 interface ImageTextInputProps {
   onSubmit?: (text: string) => void;
   onImageChange?: (file: File | null) => void;
   onAnalysisComplete?: (result: string) => void;
   placeholder?: string;
-  className?: string;
-  messages?: Message[];
   previousCode?: string | null;
   autoFocus?: boolean;
 }
@@ -24,8 +15,6 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
   onImageChange,
   onAnalysisComplete,
   placeholder = "Type something or upload an image...",
-  className = "",
-  messages = [],
   previousCode = null,
   autoFocus = false,
 }) => {
@@ -134,7 +123,7 @@ const ImageTextInput: React.FC<ImageTextInputProps> = ({
 
   return (
     <div className="flex justify-center w-full">
-      <div className={`relative flex items-center w-[300px] ${className}`}>
+      <div className={`relative flex items-center w-[300px]`}>
         <div className="relative flex-1">
           <input
             ref={inputRef}

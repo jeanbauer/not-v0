@@ -9,13 +9,14 @@ import React, {
   useContext,
   useReducer,
 } from "react";
+
 import { format, parseISO, addDays, differenceInDays } from "date-fns";
 import { debounce, throttle, uniq, groupBy } from "lodash";
 import clsx from "clsx";
-import { FiRotateCcw, FiDownload, FiChevronUp } from "react-icons/fi";
+import { FiRotateCcw, FiDownload } from "react-icons/fi";
 
 import ImageTextInput from "../components/ImageTextInput";
-import { LiveProvider, LiveError, LivePreview } from "react-live";
+import { LiveProvider, LiveError, LivePreview, LiveEditor } from "react-live";
 import SnakeLoading from "../components/SnakeLoading";
 
 interface Message {
@@ -31,39 +32,53 @@ export default function Home() {
   const [hasStarted, setHasStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [previousCode, setPreviousCode] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [, setCopySuccess] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDebugMode, setIsDebugMode] = useState(false);
+
+  useEffect(() => {
+    const debugMode = localStorage.getItem("debugMode") === "true";
+    setIsDebugMode(debugMode);
+  }, []);
 
   const handleAnalysisComplete = (result: string) => {
     const wrappedCode = result.includes("render(")
       ? result
       : `const Component = ${result};\nrender(<Component />);`;
-    setCurrentPreview(wrappedCode);
-    setPreviousCode(wrappedCode);
-    if (!hasStarted) {
-      setHasStarted(true);
-    }
-    setMessages((prev) => {
-      const newMessages = [...prev];
-      if (newMessages.length > 0) {
-        newMessages[newMessages.length - 1].code = wrappedCode;
+
+    // Only update currentPreview and previousCode if the result is valid
+    console.log("Result:", wrappedCode);
+    if (
+      !result.includes("Error:") &&
+      !result.includes("error") &&
+      !result.includes("SyntaxError")
+    ) {
+      setCurrentPreview(wrappedCode);
+      setPreviousCode(wrappedCode);
+      if (!hasStarted) {
+        setHasStarted(true);
       }
-      return newMessages;
-    });
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        if (newMessages.length > 0) {
+          newMessages[newMessages.length - 1].code = wrappedCode;
+        }
+        return newMessages;
+      });
+    } else {
+      // If there's an error, just update the current preview without affecting previousCode
+      setCurrentPreview(wrappedCode);
+    }
     setIsLoading(false);
   };
 
   const handleSubmit = (text: string) => {
-    console.log("Current Preview:", currentPreview);
-    console.log("Previous Code before update:", previousCode);
-
     setMessages((prev) => [
       ...prev,
       { type: "text", content: text, result: "" },
     ]);
     setIsLoading(true);
     if (currentPreview) {
-      console.log("Setting previousCode to:", currentPreview);
       setPreviousCode(currentPreview);
     }
   };
@@ -185,7 +200,6 @@ export default function Home() {
             onImageChange={handleImageChange}
             onAnalysisComplete={handleAnalysisComplete}
             placeholder="Reply..."
-            messages={messages}
             previousCode={previousCode}
           />
         </div>
@@ -284,7 +298,6 @@ export default function Home() {
               placeholder={
                 isSidebarOpen ? "" : "Change the background color..."
               }
-              messages={messages}
               previousCode={previousCode}
               autoFocus={isSidebarOpen}
             />
@@ -302,12 +315,6 @@ export default function Home() {
               </div>
             ) : currentPreview ? (
               <div className="h-full w-full">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      '<script src="https://cdn.tailwindcss.com"></script>',
-                  }}
-                />
                 <LiveProvider
                   code={currentPreview}
                   noInline={true}
@@ -337,8 +344,9 @@ export default function Home() {
                     clsx,
                   }}
                 >
-                  <LiveError className="text-red-500 p-4" />
                   <LivePreview className="p-[60px]" />
+                  <LiveError className="text-red-500 p-4" />
+                  {isDebugMode && <LiveEditor />}
                 </LiveProvider>
               </div>
             ) : (

@@ -4,10 +4,26 @@ import fs from "fs";
 import path from "path";
 import { formatter } from "./formatter";
 
-const systemPrompt = fs.readFileSync(
-  path.join(process.cwd(), "public", "systemPrompt.md"),
-  "utf-8"
-);
+const isDev = process.env.NODE_ENV === "development";
+
+const getSystemPrompt = () => {
+  const content = fs.readFileSync(
+    path.join(process.cwd(), "public", "systemPrompt.md"),
+    "utf-8"
+  );
+
+  // Extract version from the first line if it exists
+  const versionMatch = content.match(/^<!-- version: (.*?) -->/);
+  const version = versionMatch ? versionMatch[1] : "unknown";
+
+  console.log(`[System Prompt] Version: ${version} 🔄`);
+
+  // Return the content without the version comment
+  return content.replace(/^<!-- version: .*? -->\n?/, "");
+};
+
+// Load system prompt once in production
+const systemPrompt = getSystemPrompt();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -15,6 +31,9 @@ const openai = new OpenAI({
 
 export async function POST(request: Request) {
   try {
+    // Load system prompt on every request in development
+    const currentSystemPrompt = isDev ? getSystemPrompt() : systemPrompt;
+
     const body = await request.json();
     const { type, content, previousCode } = body;
 
@@ -23,14 +42,14 @@ export async function POST(request: Request) {
       messages = [
         {
           role: "system" as const,
-          content: systemPrompt,
+          content: currentSystemPrompt,
         },
         {
           role: "user" as const,
           content: [
             {
               type: "text",
-              text: "Analyze this UI layout and return ONLY a valid JSON object following the specified format. Do not include any additional text or formatting.",
+              text: "Generate a functional React component from this image using Tailwind CSS. Output only valid JSX.",
             },
             {
               type: "image_url",
@@ -43,23 +62,22 @@ export async function POST(request: Request) {
         },
       ];
     } else {
-      // For text messages, include the previous code if it exists
       const contextMessage = previousCode
         ? {
-            role: "system" as const,
-            content: `Previous component code:\n${previousCode}\n\nUse this as reference for the next component. Only modify what user asks for.`,
+            role: "assistant" as const,
+            content: previousCode,
           }
         : null;
 
       messages = [
         {
           role: "system" as const,
-          content: systemPrompt,
+          content: currentSystemPrompt,
         },
         ...(contextMessage ? [contextMessage] : []),
         {
           role: "user" as const,
-          content: content,
+          content: `Please update the previous component with the following change:\n\n${content}`,
         },
       ];
     }

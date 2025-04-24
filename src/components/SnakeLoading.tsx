@@ -40,7 +40,6 @@ const SnakeLoading: React.FC = () => {
 
     let lastTime = 0;
     const speed = 2;
-    const segmentDistance = 10;
 
     const animate = (currentTime: number) => {
       if (!ctx || !canvas) return;
