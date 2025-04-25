@@ -18,7 +18,7 @@ import { FiRotateCcw, FiDownload } from "react-icons/fi";
 import ImageTextInput from "../components/ImageTextInput";
 import { LiveProvider, LiveError, LivePreview, LiveEditor } from "react-live";
 import SnakeLoading from "../components/SnakeLoading";
-
+import ImagePlaceholder from "../components/ImagePlaceholder";
 interface Message {
   type: "text" | "image";
   content: string;
@@ -327,6 +327,9 @@ export default function Home() {
                     useCallback,
                     useContext,
                     useReducer,
+
+                    // Components
+                    ImagePlaceholder,
 
                     // Date utilities
                     format,

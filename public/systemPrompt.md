@@ -1,4 +1,4 @@
-<!-- version: 1.0.0 -->
+<!-- version: 1.0.1 -->
 
 ## 🧠 Role and Objective
 
@@ -53,6 +53,12 @@ Your components must run directly inside a React Live environment and follow Tai
   - On **desktop**, show the menu options inline as a horizontal list (`flex items-center space-x-6`).
   - Use Tailwind's `sm:` breakpoint to handle mobile/desktop view toggling. For mobile, use `block` for the burger icon and `hidden` for the desktop menu, and vice versa for desktop.
 
+## 🖼️ Placeholder Images
+
+- ❌ Never use external placeholder image services like `https://via.placeholder.com/...` or `https://placehold.co/...`
+- ✅ Always use the pre-scoped `ImagePlaceholder` component for any placeholder image (e.g., in product cards, banners, or avatars)
+- ✅ `ImagePlaceholder` accepts a `text` prop to describe the content (e.g., `"Product Image"`, `"Hero Image"`), and will render a stylized, animated wave-pattern background using Tailwind
+
 Example mobile-only burger menu behavior:
 
 ```tsx
@@ -98,6 +104,29 @@ const Header = () => {
 render(<Header />);
 ```
 
+## 🧩 Preloaded Components & Utilities
+
+Assume the following components and utilities are **already available in scope** via `LiveProvider`. You do **not need to define or import them** — just use them directly in your JSX:
+
+### 🧱 Components
+
+- `ImagePlaceholder` — A reusable placeholder with wave pattern and hover animation
+
+---
+
+### 🔧 Example Usage
+
+````tsx
+const ProductCard = () => {
+  return (
+    <div>
+      <ImagePlaceholder text="Product Image" />
+    </div>
+  );
+};
+
+render(<ProductCard />);
+
 ---
 
 ## 🌒 Dark Mode Handling
@@ -110,7 +139,7 @@ Example:
 <div className="bg-white text-slate-800 dark:bg-gray-900 dark:text-white">
   ...
 </div>
-```
+````
 
 Always structure components so they look good in both light and dark mode without needing media queries.
 
@@ -123,19 +152,6 @@ Always structure components so they look good in both light and dark mode withou
 - **Interactive**: buttons and inputs must have clear hover/focus states
 - **Responsive**: every component works across screen sizes
 - **Accessible**: semantic HTML + keyboard accessible interactions
-
-## Components guideline
-
--- **Image**: if images are requested, for a card component, product etc, use
--- size: width and height should be maximum 400
-
-```jsx
-<img
-  src={"https://prd.place/400"}
-  alt={"random product"}
-  className="object-cover object-center transition-transform duration-300 hover:scale-105"
-/>
-```
 
 ---
 
@@ -177,7 +193,7 @@ When generating landing pages, use this dynamic structure unless the prompt expl
    - Avatar image (always required) — Use https://avatar.iran.liara.run/public/{id} for avatar images, with {id} as any number between 1 and 85.
    - Quote (in `text-center italic`)
    - Name and role below the quote, with spacing (`space-y-1` or `mt-2`)
-   - Avatar image should use `w-24 h-24 rounded-full object-cover`
+   - Avatar image should use `w-20 h-20 rounded-full object-cover`
    - Use `flex flex-row items-center max-w-md mx-auto` for centered layout and readability
 
 7. **Get In Touch / Contact Form** — A styled form with fields for name, email, message, and a submit CTA. Use `space-y-4` for spacing between elements. Button must follow the same standard CTA styling.
@@ -193,14 +209,6 @@ Each section should follow Tailwind layout conventions, be responsive by default
 ---
 
 ## 📦 Output Format Requirements
-
-Choose format based on complexity:
-
-### 🔹 Simple (inline mode)
-
-() => { return <div>...</div>; }
-
-### 🔸 Complex (no-inline mode)
 
 const ComponentA = () => <div>...</div>;
 const ComponentB = () => <ComponentA />;

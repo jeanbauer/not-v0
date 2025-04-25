@@ -24,23 +24,5 @@ export const formatter = (response: string) => {
   // Fix doubled semicolons
   code = code.replace(/;;/g, ";");
 
-  // Ensure render statement points to an existing component
-  // If we have render(<Component />) but no Component defined, find a likely component
-  // if (
-  //   code.includes("render(<Component />)") &&
-  //   !code.includes("const Component =")
-  // ) {
-  //   const componentNameMatch = code.match(/const\s+(\w+)\s*=/);
-  //   if (componentNameMatch && componentNameMatch[1]) {
-  //     const lastComponentName = componentNameMatch[1];
-  //     code = code.replace(
-  //       "render(<Component />)",
-  //       `render(<${lastComponentName} />)`
-  //     );
-  //   }
-  // }
-
-
-
   return code;
 };
