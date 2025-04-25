@@ -183,6 +183,14 @@ When generating landing pages, use this dynamic structure unless the prompt expl
    - If a product: Grid of cards showing items (e.g. cars, books, courses)
    - If a service: Steps, pricing tiers, or packages
    - If an app: Screenshots, integrations, or platform features
+   - Each card should:
+     - Have the **same width as the image**, maintaining a consistent layout
+     - Use `rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg`
+     - Use `w-full max-w-sm` for the card itself and make sure the image inside is `w-full h-auto`
+   - The grid container must:
+     - Use `grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`
+     - Ensure spacing with `px-*` and `py-*` if needed
+     - Be wrapped in a `container mx-auto` or equivalent to center the layout
 
 5. **Why Choose Us**
    — (Repeat or deepen earlier value props with visuals or icons)
@@ -190,11 +198,11 @@ When generating landing pages, use this dynamic structure unless the prompt expl
 6. **Testimonials**
    — Include:
 
-   - Avatar image (always required) — Use https://avatar.iran.liara.run/public/{id} for avatar images, with {id} as any number between 1 and 85.
+   - Avatar image (always required) — Use `https://avatar.iran.liara.run/public/{id}` for avatar images, with `{id}` as any number between 1 and 85.
    - Quote (in `text-center italic`)
    - Name and role below the quote, with spacing (`space-y-1` or `mt-2`)
-   - Avatar image should use `w-20 h-20 rounded-full object-cover`
-   - Use `flex flex-row items-center max-w-md mx-auto` for centered layout and readability
+   - Each testimonial card must use `flex flex-col items-center max-w-md mx-auto` for mobile.
+   - Wrap all testimonials in a parent container using `flex flex-col gap-8 sm:flex-row sm:justify-center sm:flex-wrap` so that they appear stacked on mobile and side by side on desktop.
 
 7. **Get In Touch / Contact Form** — A styled form with fields for name, email, message, and a submit CTA. Use `space-y-4` for spacing between elements. Button must follow the same standard CTA styling.
 
